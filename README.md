@@ -1,41 +1,41 @@
-# React Frontend Template
+# Asteroid Game Frontend (React + WebSocket)
 
-This is a starter template for learning web development with a React frontend and a Spring Boot backend. It includes basic authentication, routing, and role-based access control.
+Simple, erweiterbare Frontend-Basis fuer ein Asteroid-Game mit:
 
-## 🚀 How to Start
+- Spielbereich mit Raumschiff
+- Steuerung ueber `A` (links) und `D` (rechts)
+- Startposition des Schiffs unten in der Mitte
+- vorbereiteter WebSocket-Anbindung
 
-1. **Install Dependencies**
-   ```bash
-   npm install
-   ```
+## Start
 
-2. **Run the Development Server**
-   ```bash
-   npm run dev
-   ```
-   The app will be available at `http://localhost:5173`.
+```bash
+npm install
+npm run dev
+```
 
-> **Note:** Make sure your Spring Boot backend is running at `http://localhost:8080` for the API calls to work.
+App-URL: `http://localhost:5173`
 
-## 📂 Project Structure & Key Files
+## WebSocket konfigurieren
 
-Here is where the magic happens:
+Standard-URL im Frontend:
 
-### 1. API Configuration (`src/api/axios.ts`)
-This file sets up **Axios**, the library used to send requests to your backend. It defines the `baseURL` and ensures cookies are sent with every request.
+`ws://localhost:8080/ws/game`
 
-### 2. Authentication State (`src/AuthContext.tsx`)
-This is the "brain" of the app's security. It tracks if a user is logged in, who they are, and provides `login` and `logout` functions to the rest of the app.
+Optional per Vite-Env ueberschreiben:
 
-### 3. Routing & Security (`src/App.tsx`)
-This file defines the different pages (routes) of your app. It also uses "Protected Routes" to ensure only logged-in users can see the Dashboard.
+`VITE_GAME_WS_URL=ws://localhost:8080/ws/game`
 
-### 4. Components (`src/components/`)
-*   **`Login.tsx` & `Register.tsx`**: Handle user input and communicate with the backend to authenticate.
-*   **`Dashboard.tsx`**: A private page that shows how to fetch data and handle different user roles (e.g., User vs. Admin).
+## Wichtige Dateien
 
-## 💡 How to add a new page?
+- `src/App.tsx`: Route `/` zeigt das Spiel
+- `src/game/components/AsteroidGame.tsx`: Rendering, Input-Handling, lokales Movement
+- `src/game/services/wsClient.ts`: schlanker WebSocket-Client (`connect`, `send`, `onMessage`)
+- `src/game/types.ts`: zentrale Typen fuer Client-/Server-Events und Game-State
 
-1. Create a new component in `src/components/`.
-2. Open `src/App.tsx`.
-3. Import your component and add a new `<Route>` inside the `<Routes>` block.
+## Event-Protokoll (JSON)
+
+- Client -> Server:
+  - `player_input` mit `{ left: boolean, right: boolean }`
+- Server -> Client:
+  - `state` mit partiellen Updates fuer den Game-State (z. B. Player/Asteroids)
