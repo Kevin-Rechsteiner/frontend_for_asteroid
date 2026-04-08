@@ -1,9 +1,9 @@
-import {type FormEvent, useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080';
 
-const LoginPage = () => {
+const RegisterPage = () => {
     const navigate = useNavigate();
 
     const [email, setEmail] = useState('');
@@ -17,16 +17,15 @@ const LoginPage = () => {
         setIsSubmitting(true);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/v1/auth/authenticate`, {
+            const response = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ email, password, role: 'USER' }),
             });
 
-
             if (!response.ok) {
-                setError('Login fehlgeschlagen. Bitte E-Mail/Passwort prüfen.');
+                setError('Registrierung fehlgeschlagen. Bitte Eingaben prüfen.');
                 return;
             }
 
@@ -39,13 +38,12 @@ const LoginPage = () => {
             const userPayload = {
                 id: responseUser?.id ?? '',
                 email: responseUser?.email ?? email,
-                roles: responseUser?.roles ?? [],
+                roles: responseUser?.roles ?? ['USER'],
             };
 
             localStorage.setItem('user', JSON.stringify(userPayload));
             localStorage.setItem('authEmail', userPayload.email);
 
-            // Nach erfolgreichem Login direkt ins Spiel
             navigate('/game');
         } catch {
             setError('Server nicht erreichbar.');
@@ -78,7 +76,7 @@ const LoginPage = () => {
                     gap: '12px',
                 }}
             >
-                <h1 style={{ margin: 0, fontSize: '1.2rem' }}>Login</h1>
+                <h1 style={{ margin: 0, fontSize: '1.2rem' }}>Profil erstellen</h1>
 
                 <label style={{ display: 'grid', gap: '6px' }}>
                     <span>E-Mail</span>
@@ -117,13 +115,13 @@ const LoginPage = () => {
                         opacity: isSubmitting ? 0.7 : 1,
                     }}
                 >
-                    {isSubmitting ? 'Einloggen...' : 'Einloggen'}
+                    {isSubmitting ? 'Registrieren...' : 'Registrieren'}
                 </button>
 
                 <p style={{ margin: 0, fontSize: '0.9rem', opacity: 0.9 }}>
-                    Noch kein Profil?{' '}
-                    <Link to="/register" style={{ color: '#8fb7ff' }}>
-                        Jetzt registrieren
+                    Bereits registriert?{' '}
+                    <Link to="/login" style={{ color: '#8fb7ff' }}>
+                        Zum Login
                     </Link>
                 </p>
 
@@ -132,4 +130,5 @@ const LoginPage = () => {
     );
 };
 
-export default LoginPage;
+export default RegisterPage;
+

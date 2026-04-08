@@ -11,6 +11,7 @@ export interface AsteroidState {
     x: number;
     y: number;
     size: number;
+    hp: number;
 }
 
 export interface BulletState {
@@ -27,9 +28,16 @@ export interface GameState {
     asteroids: AsteroidState[];
     bullets: BulletState[];
     score: number;
+    personalBest: number;
     lives: number;
     paused: boolean;
     gameOver: boolean;
+}
+
+export interface LeaderboardEntryResponse {
+    rank: number;
+    displayName: string;
+    highScore: number;
 }
 
 export type ClientEvent =
@@ -46,6 +54,8 @@ export type ClientEvent =
     payload: {
         paused?: boolean;
         toggle_pause?: boolean;
+        restart?: boolean;
+        reset?: boolean;
     };
 }
     | {
