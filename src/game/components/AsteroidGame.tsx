@@ -80,15 +80,26 @@ const AsteroidGame = () => {
                 }
             }
         } catch {
-            // ignore broken local storage payload
+            return localStorage.getItem('authEmail') ?? 'unbekannt';
         }
 
         return localStorage.getItem('authEmail') ?? 'unbekannt';
     });
-    const previousLivesRef = useRef(3);
+    const currentLivesRef = useRef(3);
     const damageFlashTimeoutRef = useRef<number | null>(null);
 
     const wsClient = useMemo(() => new WsClient(), []);
+
+    const triggerDamageFlash = () => {
+        setDamageFlashActive(true);
+        if (damageFlashTimeoutRef.current !== null) {
+            window.clearTimeout(damageFlashTimeoutRef.current);
+        }
+
+        damageFlashTimeoutRef.current = window.setTimeout(() => {
+            setDamageFlashActive(false);
+        }, 180);
+    };
 
     useEffect(() => {
         const wsUrl = import.meta.env.VITE_GAME_WS_URL ?? 'ws://localhost:8080/ws/game';
@@ -97,7 +108,11 @@ const AsteroidGame = () => {
 
         wsClient.onMessage((event: ServerEvent) => {
             if (event.type === 'state') {
-                const payloadWithOptionalHighScore = event.payload as Partial<GameState> & { highScore?: number };
+                const nextLives = event.payload.lives ?? currentLivesRef.current;
+                if (nextLives < currentLivesRef.current) {
+                    triggerDamageFlash();
+                }
+                currentLivesRef.current = nextLives;
 
                 setGameState((previous) => ({
                     ...previous,
@@ -109,8 +124,7 @@ const AsteroidGame = () => {
                     asteroids: event.payload.asteroids ?? previous.asteroids,
                     bullets: event.payload.bullets ?? previous.bullets,
                     score: event.payload.score ?? previous.score,
-                    personalBest:
-                        event.payload.personalBest ?? payloadWithOptionalHighScore.highScore ?? previous.personalBest,
+                    personalBest: event.payload.personalBest ?? previous.personalBest,
                     lives: event.payload.lives ?? previous.lives,
                     paused: event.payload.paused ?? previous.paused,
                     gameOver: event.payload.gameOver ?? previous.gameOver,
@@ -127,7 +141,7 @@ const AsteroidGame = () => {
             } else {
                 setWsStatus('disconnected');
             }
-        }, 250);
+        }, 500);
 
         return () => {
             window.clearInterval(intervalId);
@@ -190,8 +204,12 @@ const AsteroidGame = () => {
             wsClient.send(eventPayload);
         };
 
-        // Einmal sofort senden und dann kontinuierlich, damit der Server immer frische Inputs bekommt.
-        sendInput();
+       sendInput();
+        const hasActiveInput = leftPressed || rightPressed || shootPressed;
+        if (!hasActiveInput) {
+            return;
+        }
+
         const intervalId = window.setInterval(sendInput, 80);
 
         return () => {
@@ -199,20 +217,6 @@ const AsteroidGame = () => {
         };
     }, [leftPressed, rightPressed, shootPressed, wsClient]);
 
-    useEffect(() => {
-        if (gameState.lives < previousLivesRef.current) {
-            setDamageFlashActive(true);
-            if (damageFlashTimeoutRef.current !== null) {
-                window.clearTimeout(damageFlashTimeoutRef.current);
-            }
-
-            damageFlashTimeoutRef.current = window.setTimeout(() => {
-                setDamageFlashActive(false);
-            }, 180);
-        }
-
-        previousLivesRef.current = gameState.lives;
-    }, [gameState.lives]);
 
     useEffect(() => {
         return () => {
@@ -240,7 +244,7 @@ const AsteroidGame = () => {
 
         wsClient.send({
             type: 'game_control',
-            payload: { restart: true, reset: true },
+            payload: { restart: true },
         } as ClientEvent);
     };
 
