@@ -20,9 +20,10 @@ const LoginPage = () => {
             const response = await fetch(`${API_BASE_URL}/api/v1/auth/authenticate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'include', // wichtig: JWT-Cookie setzen
+                credentials: 'include',
                 body: JSON.stringify({ email, password }),
             });
+
 
             if (!response.ok) {
                 setError('Login fehlgeschlagen. Bitte E-Mail/Passwort prüfen.');
