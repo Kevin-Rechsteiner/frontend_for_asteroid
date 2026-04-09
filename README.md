@@ -1,5 +1,7 @@
 # Asteroid Game Frontend (React + WebSocket)
 
+Link Backend: https://github.com/Kevin-Rechsteiner/UltimateShipShooter
+
 Simple, erweiterbare Frontend-Basis für ein Asteroid-Game mit:
 
 - Spielbereich mit Raumschiff
